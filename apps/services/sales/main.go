@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 
 	"github.com/ardanlabs/conf/v3"
 	"github.com/iamNilotpal/service/apps/services/sales/config"
@@ -18,8 +22,11 @@ const description string = ""
 
 func main() {
 	log := logger.New("SALES-API")
+	defer log.Sync()
 
 	if err := run(log); err != nil {
+		log.Error("startup", zap.Any("ERROR", err))
+		log.Sync()
 		os.Exit(1)
 	}
 }
@@ -57,6 +64,46 @@ func run(logger *zap.Logger) error {
 	}
 
 	logger.Info("startup", zap.String("config", out))
+
+	// Start API Service
+	logger.Info("startup", zap.String("status", "initializing V1 API support"))
+
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
+
+	api := http.Server{
+		Handler:      nil,
+		Addr:         cfg.Web.APIHost,
+		ReadTimeout:  cfg.Web.ReadTimeout,
+		IdleTimeout:  cfg.Web.IdleTimeout,
+		WriteTimeout: cfg.Web.WriteTimeout,
+		ErrorLog:     zap.NewStdLog(logger),
+	}
+
+	serverErrors := make(chan error, 1)
+
+	go func() {
+		logger.Info("startup", zap.String("status", "api router started"), zap.String("host", api.Addr))
+		serverErrors <- api.ListenAndServe()
+	}()
+
+	// Shutdown Server
+	select {
+	case err := <-serverErrors:
+		return fmt.Errorf("server error: %w", err)
+
+	case sig := <-shutdown:
+		logger.Info("shutdown", zap.String("status", "shutdown started"), zap.Any("signal", sig))
+		defer logger.Info("shutdown", zap.String("status", "shutdown complete"), zap.Any("signal", sig))
+
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
+		defer cancel()
+
+		if err := api.Shutdown(ctx); err != nil {
+			api.Close()
+			return fmt.Errorf("could not stop server gracefully: %w", err)
+		}
+	}
 
 	return nil
 }
