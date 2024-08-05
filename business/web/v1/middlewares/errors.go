@@ -24,17 +24,15 @@ func Errors(log *zap.Logger) web.Middleware {
 				switch {
 				case v1.IsRequestError(err):
 					reqErr := v1.GetRequestError(err)
-					er = v1.ErrorResponse{Error: reqErr.Error()}
+					er = v1.ErrorResponse{Message: reqErr.Error()}
 					status = reqErr.Status
 
 				default:
-					er = v1.ErrorResponse{
-						Error: http.StatusText(http.StatusInternalServerError),
-					}
+					er = v1.ErrorResponse{Message: http.StatusText(http.StatusInternalServerError)}
 					status = http.StatusInternalServerError
 				}
 
-				if err := web.Respond(ctx, w, er, status); err != nil {
+				if err := web.Respond(ctx, w, web.NewErrorResponse(er), status); err != nil {
 					return err
 				}
 

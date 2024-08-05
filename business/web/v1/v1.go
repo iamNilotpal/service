@@ -7,8 +7,8 @@ import (
 
 // ErrorResponse is the form used for API responses from failures in the API.
 type ErrorResponse struct {
-	Error  string            `json:"error"`
-	Fields map[string]string `json:"fields,omitempty"`
+	Message string            `json:"message"`
+	Fields  map[string]string `json:"fields,omitempty"`
 }
 
 // RequestError is used to pass an error during the request through the
@@ -20,8 +20,8 @@ type RequestError struct {
 
 // NewRequestError wraps a provided error with an HTTP status code. This
 // function should be used when handlers encounter expected errors.
-func NewRequestError(err error, status int) error {
-	return &RequestError{Status: status, Err: err}
+func NewRequestError(err string, status int) error {
+	return &RequestError{Status: status, Err: errors.New(err)}
 }
 
 // Error implements the error interface. It uses the default message of the
