@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var build = "develop"
+var build string = "develop"
 
 const description string = ""
 
