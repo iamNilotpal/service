@@ -6,13 +6,9 @@ ARG BUILD_REF
 # Copy the source code into the container.
 COPY . /service
 
-# Build the admin binary.
-WORKDIR /service/app/tooling/sales-admin
-RUN go build -ldflags "-X main.build=${BUILD_REF}"
-
 # Build the service binary.
 WORKDIR /service/apps/services/sales
-RUN go build -ldflags "-X main.build=${BUILD_REF}"
+RUN go build -ldflags "-X main.build=${BUILD_REF}" -o sales main.go
 
 
 # Run the Go Binary in Alpine.
@@ -20,8 +16,9 @@ FROM alpine:3.20.2
 ARG BUILD_DATE
 ARG BUILD_REF
 RUN addgroup -g 1000 -S sales && \
-    adduser -u 1000 -h /service -G sales -S sales
-COPY --from=build_sales-api --chown=sales:sales /service/apps/services/sales/sales /service/sales
+adduser -u 1000 -h /service -G sales -S sales
+COPY --from=build_sales-api --chown=sales:sales /service/apps/services/sales /service/sales
 WORKDIR /service
 USER sales
-CMD ["./sales"]
+EXPOSE 3000
+CMD ["sales/sales"]

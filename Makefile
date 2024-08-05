@@ -10,7 +10,7 @@ POSTGRES        := postgres:15.7
 APP             := sales
 SERVICE_NAME    := sales-api
 BASE_IMAGE_NAME := iamNilotpal/service
-VERSION       	:= "$(shell git rev-parse --short HEAD)"
+VERSION       	:= $(shell git rev-parse --short HEAD)
 SERVICE_IMAGE   := $(BASE_IMAGE_NAME)/$(SERVICE_NAME):$(VERSION)
 
 
@@ -21,8 +21,6 @@ dev-docker:
 	docker pull $(POSTGRES)
 
 # Building containers
-all: service metrics
-
 build-sales-service:
 	docker build \
 		-f zarf/docker/dockerfile.service \
@@ -30,6 +28,12 @@ build-sales-service:
 		--build-arg BUILD_REF=$(VERSION) \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 		.
+
+# Running with Docker
+run-sales: build-sales-service run-sales-container
+
+run-sales-container:
+	docker run -d --name $(SERVICE_NAME) -p 3000:3000 $(SERVICE_IMAGE)
 
 # Administration
 migrate:
