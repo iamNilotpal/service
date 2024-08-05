@@ -12,6 +12,7 @@ import (
 
 	"github.com/ardanlabs/conf/v3"
 	"github.com/iamNilotpal/service/apps/services/sales/config"
+	"github.com/iamNilotpal/service/apps/services/sales/handlers"
 	"github.com/iamNilotpal/service/foundation/logger"
 	"go.uber.org/zap"
 )
@@ -71,8 +72,9 @@ func run(logger *zap.Logger) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
+	apiMux := handlers.APIMux(handlers.APIMuxConfig{Build: build, Shutdown: shutdown, Log: logger})
 	api := http.Server{
-		Handler:      nil,
+		Handler:      apiMux,
 		Addr:         cfg.Web.APIHost,
 		ReadTimeout:  cfg.Web.ReadTimeout,
 		IdleTimeout:  cfg.Web.IdleTimeout,
