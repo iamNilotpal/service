@@ -21,7 +21,10 @@ dev-docker:
 	docker pull $(POSTGRES)
 
 # Building containers
-build-sales-service:
+remove-image:
+	docker image rm -f $(SERVICE_IMAGE)
+
+build-sales-service: remove-image
 	docker build \
 		-f zarf/docker/dockerfile.service \
 		-t $(SERVICE_IMAGE) \
@@ -30,9 +33,12 @@ build-sales-service:
 		.
 
 # Running with Docker
+remove-container:
+	docker container rm -f $(SERVICE_NAME)
+
 run-sales: build-sales-service run-sales-container
 
-run-sales-container:
+run-sales-container: remove-container
 	docker run -d --name $(SERVICE_NAME) -p 3000:3000 $(SERVICE_IMAGE)
 
 # Administration
