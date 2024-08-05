@@ -23,7 +23,7 @@ dev-docker:
 # Building containers
 all: service metrics
 
-build-service:
+build-sales-service:
 	docker build \
 		-f zarf/docker/dockerfile.service \
 		-t $(SERVICE_IMAGE) \

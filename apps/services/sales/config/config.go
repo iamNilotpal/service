@@ -21,7 +21,7 @@ type auth struct {
 	ActiveKID  string `conf:"default:private_key_file"`
 }
 
-type dB struct {
+type db struct {
 	MaxIdleConns int    `conf:"default:2"`
 	MaxOpenConns int    `conf:"default:0"`
 	DisableTLS   bool   `conf:"default:true"`
@@ -32,7 +32,7 @@ type dB struct {
 }
 
 type SalesAPIConfig struct {
-	DB   dB
+	DB   db
 	Web  web
 	Auth auth
 	conf.Version
