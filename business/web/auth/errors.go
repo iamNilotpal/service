@@ -13,7 +13,7 @@ type AuthError struct {
 }
 
 // NewAuthError creates an AuthError for the provided message.
-func NewAuthError(format string, code int, args ...any) error {
+func NewAuthError(code int, format string, args ...any) error {
 	return &AuthError{
 		Code: code,
 		Msg:  fmt.Sprintf(format, args...),

@@ -13,6 +13,8 @@ import (
 	"github.com/ardanlabs/conf/v3"
 	"github.com/iamNilotpal/service/apps/services/sales/config"
 	"github.com/iamNilotpal/service/apps/services/sales/handlers"
+	"github.com/iamNilotpal/service/business/web/auth"
+	"github.com/iamNilotpal/service/foundation/keystore"
 	"github.com/iamNilotpal/service/foundation/logger"
 	"go.uber.org/zap"
 )
@@ -66,13 +68,32 @@ func run(logger *zap.Logger) error {
 
 	logger.Info("startup", zap.String("config", out))
 
+	// Initialize authentication support
+
+	logger.Info("startup", zap.String("status", "initializing authentication support"))
+
+	ks, err := keystore.NewFS(os.DirFS(cfg.Auth.KeysFolder))
+	if err != nil {
+		return fmt.Errorf("reading keys: %w", err)
+	}
+
+	authCfg := auth.Config{KeyLookup: ks, Log: logger}
+	auth, err := auth.New(authCfg)
+
+	if err != nil {
+		return fmt.Errorf("constructing auth: %w", err)
+	}
+
 	// Start API Service
 	logger.Info("startup", zap.String("status", "initializing V1 API support"))
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	apiMux := handlers.APIMux(handlers.APIMuxConfig{Build: build, Shutdown: shutdown, Log: logger})
+	apiMux := handlers.APIMux(
+		handlers.APIMuxConfig{Build: build, Shutdown: shutdown, Log: logger, Auth: auth},
+	)
+
 	api := http.Server{
 		Handler:      apiMux,
 		Addr:         cfg.Web.APIHost,

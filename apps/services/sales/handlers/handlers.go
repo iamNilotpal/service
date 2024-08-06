@@ -6,6 +6,7 @@ import (
 	"os"
 
 	v1 "github.com/iamNilotpal/service/apps/services/sales/handlers/v1"
+	"github.com/iamNilotpal/service/business/web/auth"
 	"github.com/iamNilotpal/service/business/web/v1/middlewares"
 	"github.com/iamNilotpal/service/foundation/web"
 	"go.uber.org/zap"
@@ -14,6 +15,7 @@ import (
 // APIMuxConfig contains all the mandatory systems required by handlers.
 type APIMuxConfig struct {
 	Build    string
+	Auth     *auth.Auth
 	Log      *zap.Logger
 	Shutdown chan os.Signal
 }
@@ -27,7 +29,7 @@ func APIMux(cfg APIMuxConfig) http.Handler {
 		middlewares.Panics(),
 	)
 
-	v1.SetupRoutes(app, v1.Config{Log: cfg.Log, Build: cfg.Build})
+	v1.SetupRoutes(app, v1.Config{Log: cfg.Log, Build: cfg.Build, Auth: cfg.Auth})
 
 	return app.Mux
 }

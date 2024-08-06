@@ -37,7 +37,7 @@ type KeyLookup interface {
 type Config struct {
 	Issuer    string
 	KeyLookup KeyLookup
-	Log       *zap.SugaredLogger
+	Log       *zap.Logger
 }
 
 // Auth is used to authenticate clients. It can generate a token for a
@@ -46,10 +46,10 @@ type Auth struct {
 	issuer    string
 	keyLookup KeyLookup
 	parser    *jwt.Parser
+	log       *zap.Logger
 	mu        sync.RWMutex
 	method    jwt.SigningMethod
 	cache     map[string]string
-	log       *zap.SugaredLogger
 }
 
 // New creates an Auth to support authentication/authorization.

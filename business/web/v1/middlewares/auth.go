@@ -22,7 +22,7 @@ func Authenticate(a *auth.Auth) web.Middleware {
 		h := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 			claims, err := a.Authenticate(ctx, r.Header.Get("authorization"))
 			if err != nil {
-				return auth.NewAuthError("authenticate: failed: %s", http.StatusUnauthorized, err)
+				return auth.NewAuthError(http.StatusUnauthorized, "authenticate: failed: %s", err)
 			}
 
 			ctx = auth.SetClaims(ctx, claims)
@@ -41,8 +41,9 @@ func Authorize(a *auth.Auth, rule string) web.Middleware {
 	m := func(handler web.Handler) web.Handler {
 		h := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 			claims := auth.GetClaims(ctx)
+
 			if claims.Subject == "" {
-				return auth.NewAuthError("authorize: you are not authorized for that action, no claims", http.StatusUnauthorized)
+				return auth.NewAuthError(http.StatusUnauthorized, "authorize: you are not authorized for that action, no claims")
 			}
 
 			// I will use an zero valued user id if it doesn't exist.
@@ -60,7 +61,7 @@ func Authorize(a *auth.Auth, rule string) web.Middleware {
 			}
 
 			if err := a.Authorize(ctx, claims, userID, rule); err != nil {
-				return auth.NewAuthError("authorize: you are not authorized for that action, claims[%v] rule[%v]: %s", http.StatusForbidden, claims.Roles, rule, err)
+				return auth.NewAuthError(http.StatusForbidden, "authorize: you are not authorized for that action, claims[%v] rule[%v]: %s", claims.Roles, rule, err)
 			}
 
 			return handler(ctx, w, r)
