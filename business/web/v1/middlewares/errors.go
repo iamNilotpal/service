@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/iamNilotpal/service/business/web/auth"
 	v1 "github.com/iamNilotpal/service/business/web/v1"
 	"github.com/iamNilotpal/service/foundation/web"
 	"go.uber.org/zap"
@@ -26,6 +27,13 @@ func Errors(log *zap.Logger) web.Middleware {
 					reqErr := v1.GetRequestError(err)
 					er = v1.ErrorResponse{Message: reqErr.Error()}
 					status = reqErr.Status
+
+				case auth.IsAuthError(err):
+					authErr := auth.GetAuthError(err)
+					er = v1.ErrorResponse{
+						Message: http.StatusText(authErr.Code),
+					}
+					status = authErr.Code
 
 				default:
 					er = v1.ErrorResponse{Message: http.StatusText(http.StatusInternalServerError)}
