@@ -13,8 +13,8 @@ This helps in maintaining and scaling the service as it grows.
   and extensible approach, allowing easy integration of various configuration
   sources such as environment variables and configuration files.
 
-- HTTP Server: A pre-configured HTTP server with graceful shutdown capabilities,
-  middleware support, and essential handlers like health checks.
+- HTTP Server: A pre-configured HTTP server with graceful shutdown capabilities
+  and middleware support.
 
 - Middleware: Built-in middleware for logging and recovery, ensuring robust
   error handling and request logging out-of-the-box.

@@ -69,7 +69,6 @@ func run(logger *zap.Logger) error {
 	logger.Info("startup", zap.String("config", out))
 
 	// Initialize authentication support
-
 	logger.Info("startup", zap.String("status", "initializing authentication support"))
 
 	ks, err := keystore.NewFS(os.DirFS(cfg.Auth.KeysFolder))
